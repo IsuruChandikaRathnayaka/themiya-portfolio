@@ -1,0 +1,713 @@
+import React, { useState } from 'react';
+import Modal from 'react-modal';
+import axios from 'axios';
+import coverImage from './../assets/images/aboutusimg3.png';
+import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
+
+// Set the app element for Modal accessibility
+Modal.setAppElement('#root');
+
+const Dashboard = () => {
+  const { t } = useTranslation();
+
+  // State to store images data fetched from the backend
+  const [uploadedImages, setUploadedImages] = useState([]);
+
+  // State to store events data fetched from the backend
+  const [events, setEvents] = useState([]);
+
+  // State to manage the image modal
+  const [isImageModalOpen, setIsImageModalOpen] = useState(false);
+
+  // State to manage the event modal
+  const [isEventModalOpen, setIsEventModalOpen] = useState(false);
+
+  // State to manage the event update modal
+  const [isUpdateEventModalOpen, setIsUpdateEventModalOpen] = useState(false);
+  const navigate = useNavigate();
+  // State to store event details
+  const [eventDetails, setEventDetails] = useState({
+    month: '',
+    date: '',
+    title_english: '',
+    title_sinhala: '',
+    description_english: '',
+    description_sinhala: ''
+  });
+
+  // State to store the selected event for updating
+  const [selectedEvent, setSelectedEvent] = useState(null);
+
+  const handleViewImages = async () => {
+    try {
+      const response = await axios.get('http://localhost:8000/api/gallery');
+      const data = response.data;
+      console.log("this is data", data);
+
+      // Update state with fetched images
+      setUploadedImages(data);
+
+      // Open the modal
+      setIsImageModalOpen(true);
+    } catch (error) {
+      console.error('Error fetching images:', error);
+    }
+  };
+
+  const handleViewEvents = async () => {
+    try {
+      const response = await axios.get('http://localhost:8000/api/events');
+      const data = response.data;
+      console.log("this is event data", data);
+
+      setEvents(data);
+
+      // Open the modal
+      setIsEventModalOpen(true);
+    } catch (error) {
+      console.error('Error fetching events:', error);
+    }
+  };
+//code to handle the logout
+  const handleLogout = () => {
+    localStorage.removeItem('isAuthenticated');
+    navigate('/login');
+  };
+
+//reset the form
+  const resetForm = () => {
+    setEventDetails({
+      month: '',
+      date: '',
+      title_english: '',
+      title_sinhala: '',
+      description_english: '',
+      description_sinhala: ''
+    });
+  };
+  
+
+  // Function to close the image modal
+  const closeImageModal = () => {
+    setIsImageModalOpen(false);
+  };
+
+  // Function to close the event modal
+  const closeEventModal = () => {
+    setIsEventModalOpen(false);
+  };
+
+  // Function to handle adding new image for a category
+  const handleAddImage = (category, file) => {
+    const formData = new FormData();
+    formData.append('picture_url', file);
+    console.log("The category is : ".category);
+
+    axios.post(`http://localhost:8000/api/gallery/${category}`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    })
+    .then(res => {
+      console.log('Image uploaded successfully:', res.data);
+      alert("image addedd!");
+  
+    })
+    .catch(err => {
+      console.error('Error uploading image:', err);
+    });
+  };
+
+  // Function to handle deleting an image
+  const deleteImage = (category) => {
+    // Implement logic to delete image for the specified category
+    console.log(`Delete image for ${category}`);
+    setUploadedImages(prevState => ({
+      ...prevState,
+      [category]: null
+    }));
+  };
+
+  const handleDeleteImage = async (imageId) => {
+    try {
+      await axios.delete(`http://localhost:8000/api/gallery/${imageId}`);
+      setUploadedImages(prevImages => prevImages.filter(image => image.id !== imageId));
+      console.log("ok deleted!");
+    } catch (error) {
+      console.error('Error deleting image:', error);
+    }
+  };
+
+  // Function to handle adding new event
+  const handleAddEvent = (event) => {
+    event.preventDefault();
+    const { month, date, title_english,title_sinhala, description_english,description_sinhala } = eventDetails;
+
+    axios.post("http://localhost:8000/api/events", { month, date, title_english,title_sinhala, description_english,description_sinhala })
+      .then(res => {
+        alert("Event adding completed!");
+        resetForm();
+        console.log("Event added successfully!");
+      })
+      .catch(err => {
+        console.log(err);
+        // Handle error
+      });
+  };
+
+  // Function to handle month selection
+  const handleMonthChange = (e) => {
+    setEventDetails({
+      ...eventDetails,
+      month: e.target.value
+    });
+  };
+
+  // Function to handle date selection
+  const handleDateChange = (e) => {
+    setEventDetails({
+      ...eventDetails,
+      date: e.target.value
+    });
+  };
+
+  // Function to handle event name input change
+  const handleEventNameChangeEnglish = (e) => {
+    setEventDetails({
+      ...eventDetails,
+      title_english: e.target.value
+    });
+  };
+
+  const handleEventNameChangeSinhala =(e)=>{
+    setEventDetails({
+      ...eventDetails,
+      title_sinhala: e.target.value
+    });
+  }
+
+  // Function to handle event description input change
+  const handleEventDescriptionChangeEnglish = (e) => {
+    setEventDetails({
+      ...eventDetails,
+      description_english: e.target.value
+    });
+  };
+
+  const handleEventDescriptionChangeSinhala = (e) => {
+    setEventDetails({
+      ...eventDetails,
+      description_sinhala: e.target.value
+    });
+  };
+
+  // Function to handle editing events
+  const handleEditEvent = () => {
+    // Implement the logic to edit events
+    console.log("Edit Event");
+  };
+
+  const handleDeleteEvent = async (id) =>{
+      try{
+        await axios.delete(`http://localhost:8000/api/events/${id}`);
+        setEvents(prevEvents => prevEvents.filter(event => event.id !== id));
+        console.log("Event deleted successfully!");
+      
+
+      }catch(err){
+        console.log(err);
+      }
+  }
+
+  // Function to handle selecting an event for updating
+  const handleUpdateEvent = (event) => {
+    setSelectedEvent(event);
+    setEventDetails({
+      month: event.month,
+      date: event.date,
+      title_english: event.title_english,
+      title_sinhala:event.title_sinhala,
+      description_english: event.description_english,
+      description_sinhala: event.description_sinhala
+    });
+    setIsUpdateEventModalOpen(true);
+  };
+
+  // Function to handle updating an event
+  const handleUpdateEventSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      await axios.put(`http://localhost:8000/api/events/${selectedEvent.id}`, eventDetails);
+      setEvents(prevEvents => prevEvents.map(event => event.id === selectedEvent.id ? { ...event, ...eventDetails } : event));
+      console.log("Event updated successfully!");
+      setIsUpdateEventModalOpen(false);
+    } catch (error) {
+      console.error('Error updating event:', error);
+    }
+  };
+
+  // Function to close the update event modal
+  const closeUpdateEventModal = () => {
+    setIsUpdateEventModalOpen(false);
+  };
+
+  return (
+    <div className="relative mt-24 flex flex-col items-center">
+
+      <img src={coverImage} alt="background" className="w-full h-64 object-cover" />
+      <button
+        onClick={handleLogout}
+        className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline mt-10"
+      >
+        Logout
+      </button>
+      <div className="w-full max-w-4xl mt-12 p-6 bg-gradient-to-r bg-yellow-100 shadow-lg rounded-lg text-black">
+        
+        <h2 className="text-3xl font-bold mb-6">Image Add Section</h2>
+        <div className="flex flex-col gap-6">
+          <form onSubmit={(e) => { e.preventDefault(); handleAddImage(1, e.target.elements.file.files[0]); }} className="flex flex-col gap-3">
+            <label className="font-semibold">Esala Perahera</label>
+            <div className="flex gap-2 items-center">
+              <input type="file" name="file" className="border border-white p-2 rounded-md bg-white text-gray-800" required/>
+              {uploadedImages['Esala Perahera'] && (
+                <button
+                  className="bg-red-500 text-white py-2 px-4 rounded-md hover:bg-red-700 transition"
+                  onClick={() => deleteImage('Esala Perahera')}
+                >
+                  Delete Image
+                </button>
+              )}
+              {!uploadedImages['Esala Perahera'] && (
+                <button
+                  type="submit"
+                  className="bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition"
+                >
+                  Add Image
+                </button>
+              )}
+            </div>
+          </form>
+
+          <form onSubmit={(e) => { e.preventDefault(); handleAddImage(2, e.target.elements.file.files[0]); }} className="flex flex-col gap-3">
+            <label className="font-semibold">Damma School</label>
+            <div className="flex gap-2 items-center">
+              <input type="file" name="file" className="border border-white p-2 rounded-md bg-white text-gray-800" required/>
+              {uploadedImages['Damma School'] && (
+                <button
+                  className="bg-red-500 text-white py-2 px-4 rounded-md hover:bg-red-700 transition"
+                  onClick={() => deleteImage('Damma School')}
+                >
+                  Delete Image
+                </button>
+              )}
+              {!uploadedImages['Damma School'] && (
+                <button
+                  type="submit"
+                  className="bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition"
+                >
+                  Add Image
+                </button>
+              )}
+            </div>
+          </form>
+
+          <form onSubmit={(e) => { e.preventDefault(); handleAddImage(3, e.target.elements.file.files[0]); }} className="flex flex-col gap-3">
+            <label className="font-semibold">Natha Devalaya</label>
+            <div className="flex gap-2 items-center">
+              <input type="file" name="file" className="border border-white p-2 rounded-md bg-white text-gray-800" required/>
+              {uploadedImages['Natha Devalaya'] && (
+                <button
+                  className="bg-red-500 text-white py-2 px-4 rounded-md hover:bg-red-700 transition"
+                  onClick={() => deleteImage('Natha Devalaya')}
+                >
+                  Delete Image
+                </button>
+              )}
+              {!uploadedImages['Natha Devalaya'] && (
+                <button
+                  type="submit"
+                  className="bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition"
+                >
+                  Add Image
+                </button>
+              )}
+            </div>
+          </form>
+
+          <button
+            className="mt-4 bg-green-500 text-white py-2 px-4 rounded-md hover:bg-green-700 transition"
+            onClick={handleViewImages}
+          >
+            View Images
+          </button>
+        </div>
+      </div>
+
+      <div className="w-full max-w-4xl mt-12 p-6 bg-gradient-to-r bg-yellow-100 shadow-lg rounded-lg text-black">
+        <h2 className="text-3xl font-bold mb-6">Event Add Section</h2>
+        <form onSubmit={handleAddEvent}>
+          <div className="flex flex-col gap-6">
+            <div className="flex flex-col gap-3">
+              <label className="font-semibold">Select Month</label>
+              <select
+                value={eventDetails.month}
+                onChange={handleMonthChange}
+                className="border border-white p-2 rounded-md bg-white text-gray-800"
+                required
+              >
+                <option value="">Select Month</option>
+                <option value="Jan">Jan</option>
+                <option value="Feb">Feb</option>
+                <option value="Mar">Mar</option>
+                <option value="Apr">Apr</option>
+                <option value="May">May</option>
+                <option value="Jun">Jun</option>
+                <option value="Jul">Jul</option>
+                <option value="Aug">Aug</option>
+                <option value="Sep">Sep</option>
+                <option value="Oct">Oct</option>
+                <option value="Nov">Nov</option>
+                <option value="Dec">Dec</option>
+              </select>
+            </div>
+            <div className="flex flex-col gap-3">
+              <label className="font-semibold">Select Date</label>
+              <input
+                type="number"
+                value={eventDetails.date}
+                onChange={handleDateChange}
+                className="border border-white p-2 rounded-md bg-white text-gray-800"
+                required
+              />
+            </div>
+            <div className="flex flex-col gap-3">
+              <label className="font-semibold">Event Name(English)</label>
+              <input
+                type="text"
+                value={eventDetails.title_english}
+                onChange={handleEventNameChangeEnglish}
+                className="border border-white p-2 rounded-md bg-white text-gray-800"
+                required
+              />
+            </div>
+            <div className="flex flex-col gap-3">
+              <label className="font-semibold">Event Name(Sinhala)</label>
+              <input
+                type="text"
+                value={eventDetails.title_sinhala}
+                onChange={handleEventNameChangeSinhala}
+                className="border border-white p-2 rounded-md bg-white text-gray-800"
+                required
+              />
+            </div>
+            <div className="flex flex-col gap-3">
+              <label className="font-semibold">Event Description(English)</label>
+              <textarea
+                value={eventDetails.description_english}
+                onChange={handleEventDescriptionChangeEnglish}
+                className="border border-white p-2 rounded-md bg-white text-gray-800"
+                rows="4"
+                required
+              />
+            </div>
+           
+
+            <div className="flex flex-col gap-3">
+              <label className="font-semibold">Event Description(Sinhala)</label>
+              <textarea
+                value={eventDetails.description_sinhala}
+                onChange={handleEventDescriptionChangeSinhala}
+                className="border border-white p-2 rounded-md bg-white text-gray-800"
+                rows="4"
+                required
+              />
+            </div>
+
+            <button
+              type="submit"
+              className="bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition"
+            >
+              Add Event
+            </button>
+          </div>
+        </form>
+
+        <button
+          className="mt-4 bg-green-500 text-white py-2 px-4 rounded-md hover:bg-green-700 transition"
+          onClick={handleViewEvents}
+        >
+          View Events
+        </button>
+     
+
+        
+      </div>
+      <br />
+      <br />
+      {/* Modal to display images */}
+      <Modal
+        isOpen={isImageModalOpen}
+        onRequestClose={closeImageModal}
+        className="fixed inset-0 bg-white p-6 mx-auto max-w-3xl rounded-lg shadow-lg overflow-y-auto"
+        style={{
+          content: {
+            maxHeight: '100vh',
+          }
+        }}
+        overlayClassName="fixed inset-0 bg-gray-800 bg-opacity-50"
+      >
+        <h2 className="text-3xl font-bold mb-4 mt-24 text-center">Images</h2>
+        <h4 className="text-2xl font-bold mb-4 mt-8">Esala Perahara</h4>
+        <div className="flex flex-wrap gap-4">
+        
+
+        {uploadedImages.some(image => image.category_id === 1) ? (
+      uploadedImages.map(image => (
+        image.category_id === 1 && (
+          <div key={image.id} className="flex flex-col items-center">
+            <img
+              src={image.Logo}
+              alt={`Image ${image.id}`}
+              className="w-32 h-32 object-cover"
+              onError={(e) => { e.target.onerror = null; e.target.src = '/path/to/fallback-image.jpg'; }} // Fallback image
+            />
+            <button
+              className="mt-2 bg-red-500 text-white py-1 px-2 rounded-md hover:bg-red-700 transition"
+              onClick={() => handleDeleteImage(image.id)}
+            >
+              Delete
+            </button>
+          </div>
+        )
+      ))
+    ) : (
+      <p>No images available in this category.</p>
+    )}
+       
+       
+
+
+        </div>
+
+        <h3 className="text-2xl font-bold mb-4 mt-12">Damma School</h3>
+        <div className="flex flex-wrap gap-4">
+        
+
+        {uploadedImages.some(image => image.category_id === 2) ? (
+      uploadedImages.map(image => (
+        image.category_id === 2 && (
+          <div key={image.id} className="flex flex-col items-center">
+            <img
+              src={image.Logo}
+              alt={`Image ${image.id}`}
+              className="w-32 h-32 object-cover"
+              onError={(e) => { e.target.onerror = null; e.target.src = '/path/to/fallback-image.jpg'; }} // Fallback image
+            />
+            <button
+              className="mt-2 bg-red-500 text-white py-1 px-2 rounded-md hover:bg-red-700 transition"
+              onClick={() => handleDeleteImage(image.id)}
+            >
+              Delete
+            </button>
+          </div>
+        )
+      ))
+    ) : (
+      <p>No images available in this category.</p>
+    )}
+       
+       
+
+
+        </div>
+
+        <h3 className="text-2xl font-bold mb-4 mt-12">Vibhishana Devalaya</h3>
+        <div className="flex flex-wrap gap-4">
+        
+
+        {uploadedImages.some(image => image.category_id === 3) ? (
+      uploadedImages.map(image => (
+        image.category_id === 3 && (
+          <div key={image.id} className="flex flex-col items-center">
+            <img
+              src={image.Logo}
+              alt={`Image ${image.id}`}
+              className="w-32 h-32 object-cover"
+              onError={(e) => { e.target.onerror = null; e.target.src = '/path/to/fallback-image.jpg'; }} // Fallback image
+            />
+            <button
+              className="mt-2 bg-red-500 text-white py-1 px-2 rounded-md hover:bg-red-700 transition"
+              onClick={() => handleDeleteImage(image.id)}
+            >
+              Delete
+            </button>
+          </div>
+        )
+      ))
+    ) : (
+      <p>No images available in this category.</p>
+    )}
+       
+
+
+        </div>
+        <button
+          className="mt-4 bg-gray-500 text-white py-2 px-4 rounded-md hover:bg-gray-700 transition"
+          onClick={closeImageModal}
+        >
+          Close
+        </button>
+      </Modal>
+
+      {/* Modal to display events */}
+      <Modal
+        isOpen={isEventModalOpen}
+        onRequestClose={closeEventModal}
+        className="fixed inset-0 bg-white p-6 mx-auto max-w-3xl rounded-lg shadow-lg overflow-y-auto"
+        style={{
+          content: {
+            maxHeight: '100vh',
+          }
+        }}
+        overlayClassName="fixed inset-0 bg-gray-800 bg-opacity-50"
+      >
+        <h2 className="text-2xl font-bold mb-4 mt-24">Events</h2>
+<div className="flex flex-wrap gap-4">
+  {events.length > 0 ? (
+    events.map(event => (
+      <div key={event.id} className="w-full flex flex-col items-start border-b border-black pb-4 mb-4">
+        <p className="text-lg font-bold">Event Name (English): {event.title_english}</p>
+        <p className="text-lg font-bold">Event Name (Sinhala): {event.title_sinhala}</p>
+        <p><span className='text-lg font-bold'>Description (English) : </span> {event.description_english}</p>
+        <p><span className='text-lg font-bold'>Description (Sinhala) :</span>{event.description_sinhala}</p>
+        <p><span className='text-lg font-bold'>The Date : </span> {event.month} {event.date}</p>
+        <div className="flex gap-2 mt-2">
+          <button className='bg-red-500 p-3 rounded-md text-white' onClick={() => handleDeleteEvent(event.id)}>Delete Event</button>
+          <button className='bg-green-500 p-3 rounded-md text-white' onClick={() => handleUpdateEvent(event)}>Update Event</button>
+        </div>
+      </div>
+    ))
+  ) : (
+    <p>No events available.</p>
+  )}
+</div>
+
+        <button
+          className="mt-4 bg-gray-500 text-white py-2 px-4 rounded-md hover:bg-gray-700 transition"
+          onClick={closeEventModal}
+        >
+          Close
+        </button>
+      </Modal>
+
+      {/* Modal to update an event */}
+      <Modal
+        isOpen={isUpdateEventModalOpen}
+        onRequestClose={closeUpdateEventModal}
+        className="fixed inset-0 bg-white p-6 mx-auto max-w-3xl rounded-lg shadow-lg overflow-y-auto"
+        style={{
+          content: {
+            maxHeight: '100vh',
+          }
+        }}
+        overlayClassName="fixed inset-0 bg-gray-800 bg-opacity-50"
+      >
+        <h2 className="text-2xl font-bold mb-4 mt-24">Update Event</h2>
+        <form onSubmit={handleUpdateEventSubmit}>
+          <div className="flex flex-col gap-6">
+            <div className="flex flex-col gap-3">
+              <label className="font-semibold">Select Month</label>
+              <select
+                value={eventDetails.month}
+                onChange={handleMonthChange}
+                className="border border-white p-2 rounded-md bg-white text-gray-800"
+                required
+              >
+                <option value="">Select Month</option>
+                <option value="Jan">Jan</option>
+                <option value="Feb">Feb</option>
+                <option value="Mar">Mar</option>
+                <option value="Apr">Apr</option>
+                <option value="May">May</option>
+                <option value="Jun">Jun</option>
+                <option value="Jul">Jul</option>
+                <option value="Aug">Aug</option>
+                <option value="Sep">Sep</option>
+                <option value="Oct">Oct</option>
+                <option value="Nov">Nov</option>
+                <option value="Dec">Dec</option>
+              </select>
+            </div>
+            <div className="flex flex-col gap-3">
+              <label className="font-semibold">Select Date</label>
+              <input
+                type="number"
+                value={eventDetails.date}
+                onChange={handleDateChange}
+                className="border border-white p-2 rounded-md bg-white text-gray-800"
+                required
+              />
+            </div>
+            <div className="flex flex-col gap-3">
+              <label className="font-semibold">Event Name(English)</label>
+              <input
+                type="text"
+                value={eventDetails.title_english}
+                onChange={handleEventNameChangeEnglish}
+                className="border border-white p-2 rounded-md bg-white text-gray-800"
+                required
+              />
+            </div>
+
+            <div className="flex flex-col gap-3">
+              <label className="font-semibold">Event Name(Sinhala)</label>
+              <input
+                type="text"
+                value={eventDetails.title_sinhala}
+                onChange={handleEventNameChangeSinhala}
+                className="border border-white p-2 rounded-md bg-white text-gray-800"
+                required
+              />
+            </div>
+
+            <div className="flex flex-col gap-3">
+              <label className="font-semibold">Event Description(English)</label>
+              <textarea
+                value={eventDetails.description_english}
+                onChange={handleEventDescriptionChangeEnglish}
+                className="border border-white p-2 rounded-md bg-white text-gray-800"
+                rows="4"
+                required
+              />
+            </div>
+            <div className="flex flex-col gap-3">
+              <label className="font-semibold">Event Description(Sinhala)</label>
+              <textarea
+                value={eventDetails.description_sinhala}
+                onChange={handleEventDescriptionChangeSinhala}
+                className="border border-white p-2 rounded-md bg-white text-gray-800"
+                rows="4"
+                required
+              />
+            </div>
+            <button
+              type="submit"
+              className="bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition"
+            >
+              Update Event
+            </button>
+          </div>
+        </form>
+        <button
+          className="mt-4 bg-gray-500 text-white py-2 px-4 rounded-md hover:bg-gray-700 transition"
+          onClick={closeUpdateEventModal}
+        >
+          Close
+        </button>
+      </Modal>
+    </div>
+  );
+};
+
+export default Dashboard;
