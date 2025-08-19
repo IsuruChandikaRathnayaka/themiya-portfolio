@@ -295,6 +295,78 @@ const ContactUs = () => {
           </div>
         </motion.section>
       </div>
+
+      {/* References Section */}
+      <motion.section
+        variants={fadeInVariants}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true }}
+        className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16"
+      >
+        <div className="text-center mb-12">
+          <h2 className="text-3xl font-bold mb-4" style={{ color: colors.dark }}>
+            Professional References
+          </h2>
+          <div className="w-24 h-1 mx-auto mb-6" style={{ backgroundColor: colors.gold }}></div>
+          <p className="text-lg" style={{ color: colors.medium }}>
+            Below are my professional references who can attest to my qualifications and work ethic.
+          </p>
+        </div>
+
+        <div className="grid md:grid-cols-2 gap-8">
+          {/* Reference 1 */}
+          <motion.div 
+            whileHover={{ y: -5 }}
+            className="p-8 rounded-xl shadow-md"
+            style={{ backgroundColor: colors.light }}
+          >
+            <div className="flex flex-col">
+              <h3 className="text-xl font-bold mb-2" style={{ color: colors.dark }}>Pavithra Jayasekara</h3>
+              <p className="font-medium mb-4" style={{ color: colors.gold }}>
+                Director at Ishara Traders Pvt Ltd<br />
+                Managing Director at LOLC Motors Pvt Ltd
+              </p>
+              
+              <div className="space-y-3 mt-4">
+                <div className="flex items-start">
+                  <i className="fas fa-phone mt-1 mr-3 w-5" style={{ color: colors.gold }}></i>
+                  <span style={{ color: colors.medium }}>077 784 8607</span>
+                </div>
+                <div className="flex items-start">
+                  <i className="fas fa-envelope mt-1 mr-3 w-5" style={{ color: colors.gold }}></i>
+                  <span style={{ color: colors.medium }}>pavithraj@lolc.com</span>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Reference 2 */}
+          <motion.div 
+            whileHover={{ y: -5 }}
+            className="p-8 rounded-xl shadow-md"
+            style={{ backgroundColor: colors.light }}
+          >
+            <div className="flex flex-col">
+              <h3 className="text-xl font-bold mb-2" style={{ color: colors.dark }}>Safwan Hassim</h3>
+              <p className="font-medium mb-4" style={{ color: colors.gold }}>
+                Senior Supervisor at Legacy Health LLC
+              </p>
+              
+              <div className="space-y-3 mt-4">
+                <div className="flex items-start">
+                  <i className="fas fa-phone mt-1 mr-3 w-5" style={{ color: colors.gold }}></i>
+                  <span style={{ color: colors.medium }}>074 345 5700</span>
+                </div>
+                <div className="flex items-start">
+                  <i className="fas fa-envelope mt-1 mr-3 w-5" style={{ color: colors.gold }}></i>
+                  <span style={{ color: colors.medium }}>Safwan.hassim@legacyhealthllc.com</span>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      </motion.section>
     </motion.div>
   );
 };
